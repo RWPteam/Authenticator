@@ -44,7 +44,7 @@ android {
         applicationId = "com.samuioto.neap"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 18
+        versionCode = flutter.versionCode
         versionName = flutter.versionName
         //ndk {
         //    abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))

@@ -7,8 +7,6 @@ A simple TOTP authenticator.
 flutter build apk --split-debug-info --obfuscate  --split-per-abi
 ```
 # Todo
-* i18n
 * sort
 * Custom NTP
-* futile lock issue in detail page
 * more feature...

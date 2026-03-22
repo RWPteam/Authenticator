@@ -7,6 +7,7 @@ import 'package:screen_protector/screen_protector.dart';
 import 'pages/home.dart';
 import 'models/settings_model.dart';
 import 'services/setting_service.dart';
+import 'l10n/app_localizations.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -22,7 +23,6 @@ class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => _MyAppState();
 
-  // ignore: library_private_types_in_public_api
   static _MyAppState? of(BuildContext context) =>
       context.findAncestorStateOfType<_MyAppState>();
 }
@@ -68,10 +68,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (_backgroundTimestamp != null) {
         final durationAway = DateTime.now().difference(_backgroundTimestamp!);
         if (durationAway > _gracePeriod) {
-          setState(() {
-            _isAuthenticated = false;
+          setState(() => _isAuthenticated = false);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _authenticate();
           });
-          _authenticate();
         } else {
           debugPrint('在宽限期内返回，跳过验证');
         }
@@ -82,141 +82,38 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _authenticate() async {
-    final bool requireAuth = _currentSettings.requireBiometrics;
+  Widget _buildLockScreen(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
-    if (!requireAuth) {
-      setState(() => _isAuthenticated = true);
-      return;
-    }
-
-    if (_isAuthenticated || _isAuthenticating) return;
-
-    setState(() => _isAuthenticating = true);
-
-    try {
-      final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
-      final bool canAuthenticate =
-          canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
-
-      if (!canAuthenticate) {
-        setState(() => _isAuthenticated = true);
-        return;
-      }
-
-      final bool didAuthenticate = await _auth.authenticate(
-        localizedReason: '请验证指纹以解锁 Neap',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: false,
-        ),
-      );
-
-      setState(() {
-        _isAuthenticated = didAuthenticate;
-      });
-
-      // 认证失败时清空导航栈
-      if (!didAuthenticate && navigatorKey.currentState != null) {
-        navigatorKey.currentState!.pushNamedAndRemoveUntil(
-          '/',
-          (route) => false,
-        );
-      }
-    } catch (e) {
-      debugPrint('认证错误: $e');
-      setState(() => _isAuthenticated = false);
-    } finally {
-      setState(() => _isAuthenticating = false);
-    }
-  }
-
-  Future<void> loadSettings() async {
-    final settings = await _settingsService.getSettings();
-    setState(() {
-      _currentSettings = settings;
-      _isLoading = false;
-    });
-  }
-
-  ThemeMode _getThemeMode() {
-    switch (_currentSettings.themeMode) {
-      case 'light':
-        return ThemeMode.light;
-      case 'dark':
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const localizationsDelegates = [
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ];
-
-    const supportedLocales = [Locale('zh', 'CH'), Locale('en', 'US')];
-
-    if (_isLoading) {
-      return const MaterialApp(
-        localizationsDelegates: localizationsDelegates,
-        supportedLocales: supportedLocales,
-        home: Scaffold(body: Center(child: CircularProgressIndicator())),
-      );
-    }
-
-    return DynamicColorBuilder(
-      builder: (lightDynamic, darkDynamic) {
-        return MaterialApp(
-          title: 'Neap',
-          localizationsDelegates: localizationsDelegates,
-          supportedLocales: supportedLocales,
-          navigatorKey: navigatorKey,
-          themeMode: _getThemeMode(),
-          theme: _buildTheme(
-            brightness: Brightness.light,
-            dynamicScheme: lightDynamic,
-          ),
-          darkTheme: _buildTheme(
-            brightness: Brightness.dark,
-            dynamicScheme: darkDynamic,
-          ),
-          navigatorObservers: [routeObserver],
-          home: _isAuthenticated ? const HomePage() : _buildLockScreen(),
-          debugShowCheckedModeBanner: false,
-        );
-      },
-    );
-  }
-
-  Widget _buildLockScreen() {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.lock_outline, size: 72, color: Colors.grey),
-            const SizedBox(height: 24),
-            const Text(
-              '应用已锁定',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: _authenticate,
-              icon: const Icon(Icons.fingerprint),
-              label: const Text('点击解锁'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
+    return Material(
+      color: colorScheme.surface,
+      child: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 72,
+                color: colorScheme.primary.withOpacity(0.5),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                t.appLocked,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: _authenticate,
+                icon: const Icon(Icons.fingerprint),
+                label: Text(t.unlock),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -275,13 +172,190 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return ThemeData(
       colorScheme: colorScheme,
       useMaterial3: true,
-      fontFamily: 'hmossans',
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
       ),
+    );
+  }
+
+  Future<void> _authenticate() async {
+    final bool requireAuth = _currentSettings.requireBiometrics;
+
+    if (!requireAuth) {
+      setState(() => _isAuthenticated = true);
+      return;
+    }
+
+    if (_isAuthenticating) return;
+
+    setState(() => _isAuthenticating = true);
+
+    // 手动加载本地化文本，避免依赖尚未就绪的 context
+    String localizedReason = 'Please authenticate to unlock Neap';
+    try {
+      Locale currentLocale;
+      switch (_currentSettings.language) {
+        case 'zh':
+          currentLocale = const Locale('zh', 'CN');
+          break;
+        case 'ja':
+          currentLocale = const Locale('ja', 'JP');
+          break;
+        case 'en':
+          currentLocale = const Locale('en', 'US');
+          break;
+        default:
+          // 跟随系统语言，获取平台当前语言
+          currentLocale = WidgetsBinding.instance.platformDispatcher.locale;
+      }
+      // 直接通过 delegate 加载对应语言的翻译
+      final appLocalizations = await const AppLocalizationsDelegate().load(
+        currentLocale,
+      );
+      localizedReason = appLocalizations.biometricReason;
+    } catch (e) {
+      debugPrint('加载本地化文本失败: $e');
+    }
+
+    try {
+      final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
+      final bool canAuthenticate =
+          canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
+
+      if (!canAuthenticate) {
+        setState(() => _isAuthenticated = true);
+        return;
+      }
+
+      final bool didAuthenticate = await _auth.authenticate(
+        localizedReason: localizedReason,
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: false,
+        ),
+      );
+
+      if (didAuthenticate) {
+        setState(() => _isAuthenticated = true);
+      } else {
+        // 验证失败，清空导航栈
+        if (navigatorKey.currentState != null) {
+          navigatorKey.currentState!.pushNamedAndRemoveUntil(
+            '/',
+            (route) => false,
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('认证错误: $e');
+      setState(() => _isAuthenticated = false);
+    } finally {
+      setState(() => _isAuthenticating = false);
+    }
+  }
+
+  Future<void> loadSettings() async {
+    final oldSettings = _currentSettings;
+    final settings = await _settingsService.getSettings();
+    setState(() {
+      _currentSettings = settings;
+      _isLoading = false;
+    });
+
+    if (oldSettings.requireBiometrics != settings.requireBiometrics) {
+      if (!settings.requireBiometrics) {
+        setState(() => _isAuthenticated = true);
+      } else {
+        setState(() => _isAuthenticated = false);
+        _authenticate();
+      }
+    }
+    if (oldSettings.language != settings.language) {
+      setState(() {});
+    }
+  }
+
+  ThemeMode _getThemeMode() {
+    switch (_currentSettings.themeMode) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
+
+  Locale? _getLocale() {
+    switch (_currentSettings.language) {
+      case 'zh':
+        return const Locale('zh', 'CN');
+      case 'en':
+        return const Locale('en', 'US');
+      case 'ja':
+        return const Locale('ja', 'JP');
+      case 'system':
+      default:
+        return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<LocalizationsDelegate> localizationsDelegates = [
+      const AppLocalizationsDelegate(),
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ];
+
+    const supportedLocales = [
+      Locale('zh', 'CH'),
+      Locale('en', 'US'),
+      Locale('ja', 'JP'),
+    ];
+
+    if (_isLoading) {
+      return MaterialApp(
+        localizationsDelegates: localizationsDelegates,
+        supportedLocales: supportedLocales,
+        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
+    }
+
+    return DynamicColorBuilder(
+      builder: (lightDynamic, darkDynamic) {
+        return MaterialApp(
+          title: 'Neap',
+          localizationsDelegates: localizationsDelegates,
+          supportedLocales: supportedLocales,
+          locale: _getLocale(),
+          navigatorKey: navigatorKey,
+          themeMode: _getThemeMode(),
+          theme: _buildTheme(
+            brightness: Brightness.light,
+            dynamicScheme: lightDynamic,
+          ),
+          darkTheme: _buildTheme(
+            brightness: Brightness.dark,
+            dynamicScheme: darkDynamic,
+          ),
+          navigatorObservers: [routeObserver],
+          builder: (context, child) {
+            return Stack(
+              children: [
+                child!,
+                if (!_isAuthenticated) _buildLockScreen(context),
+              ],
+            );
+          },
+          home: const HomePage(),
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import '../l10n/app_localizations.dart';
 import '../models/account_model.dart';
 
 class AccountDetailPage extends StatefulWidget {
@@ -87,13 +88,15 @@ class _AccountDetailPageState extends State<AccountDetailPage>
   }
 
   void _copyCode() {
+    final t = AppLocalizations.of(context);
     Clipboard.setData(ClipboardData(text: _currentCode));
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('验证码已复制到剪贴板')));
+    ).showSnackBar(SnackBar(content: Text(t.copiedToClipboard)));
   }
 
   void _showEditMenu() {
+    final t = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -103,7 +106,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
           children: [
             ListTile(
               leading: const Icon(Icons.edit),
-              title: const Text('编辑'),
+              title: Text(t.edit),
               onTap: () {
                 Navigator.pop(context);
                 _showEditDialog();
@@ -111,7 +114,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('删除', style: TextStyle(color: Colors.red)),
+              title: Text(t.delete, style: const TextStyle(color: Colors.red)),
               onTap: () {
                 Navigator.pop(context);
                 _showDeleteDialog();
@@ -124,20 +127,21 @@ class _AccountDetailPageState extends State<AccountDetailPage>
   }
 
   void _showEditDialog() {
+    final t = AppLocalizations.of(context);
     final labelController = TextEditingController(text: _account.label);
     final issuerController = TextEditingController(text: _account.issuer);
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('修改账户信息'),
+        title: Text(t.editAccountInfo),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: labelController,
               decoration: InputDecoration(
-                labelText: '标签',
+                labelText: t.label,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.0),
                   borderSide: BorderSide(
@@ -151,7 +155,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
             TextField(
               controller: issuerController,
               decoration: InputDecoration(
-                labelText: '发行者（非必填）',
+                labelText: t.issuerOptional,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.0),
                   borderSide: BorderSide(
@@ -166,7 +170,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(t.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -193,7 +197,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
               }
               Navigator.pop(context);
             },
-            child: const Text('保存'),
+            child: Text(t.save),
           ),
         ],
       ),
@@ -201,6 +205,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
   }
 
   void _showAvatarPicker() {
+    final t = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -211,21 +216,25 @@ class _AccountDetailPageState extends State<AccountDetailPage>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '选择头像',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Text(
+                  t.selectAvatar,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
                   children: [
-                    _buildAvatarOption('default', Icons.account_circle, '默认'),
-                    _buildAvatarOption('code', Icons.code, 'Code'),
-                    _buildAvatarOption('shop', Icons.shopping_cart, 'Shop'),
-                    _buildAvatarOption('google', Icons.g_mobiledata, 'Google'),
-                    _buildAvatarOption('microsoft', Icons.window, 'Microsoft'),
-                    _buildAvatarOption('apple', Icons.apple, 'Apple'),
+                    _buildAvatarOption(
+                      'default',
+                      Icons.account_circle,
+                      t.defaultAvatar,
+                    ),
+                    _buildAvatarOption('code', Icons.code, t.code),
+                    _buildAvatarOption('shop', Icons.shopping_cart, t.shop),
+                    _buildAvatarOption('google', Icons.g_mobiledata, t.google),
+                    _buildAvatarOption('microsoft', Icons.window, t.microsoft),
+                    _buildAvatarOption('apple', Icons.apple, t.apple),
                     _buildGalleryOption(),
                   ],
                 ),
@@ -290,6 +299,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
   }
 
   Widget _buildGalleryOption() {
+    final t = AppLocalizations.of(context);
     return GestureDetector(
       onTap: _pickImageFromGallery,
       child: Column(
@@ -301,52 +311,46 @@ class _AccountDetailPageState extends State<AccountDetailPage>
             child: Icon(Icons.photo_library, color: Colors.grey[700]),
           ),
           const SizedBox(height: 6),
-          Text('从相册', style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+          Text(
+            t.fromGallery,
+            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+          ),
         ],
       ),
     );
   }
 
   Future<void> _pickImageFromGallery() async {
+    final t = AppLocalizations.of(context);
     try {
-      // 根据平台和Android版本选择合适的权限
       Permission permissionToRequest;
-
       if (Theme.of(context).platform == TargetPlatform.android) {
-        // 获取Android设备信息
         final deviceInfo = DeviceInfoPlugin();
         final androidInfo = await deviceInfo.androidInfo;
-
-        // Android 13+ (API 33+) 使用 Permission.photos
-        // Android 12及以下使用 Permission.storage
         if (androidInfo.version.sdkInt >= 33) {
           permissionToRequest = Permission.photos;
         } else {
           permissionToRequest = Permission.storage;
         }
       } else {
-        // iOS使用photos权限
         permissionToRequest = Permission.photos;
       }
-
-      // 检查当前权限状态
       var status = await permissionToRequest.status;
 
       if (status.isDenied || status.isLimited) {
-        // 显示权限请求对话框
         final shouldRequest = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('需要权限'),
-            content: const Text('应用需要访问您的相册才能选择头像'),
+            title: Text(t.permissionRequired),
+            content: Text(t.permissionGalleryDescription),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消'),
+                child: Text(t.cancel),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('允许'),
+                child: Text(t.allow),
               ),
             ],
           ),
@@ -363,9 +367,9 @@ class _AccountDetailPageState extends State<AccountDetailPage>
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Text('需要相册权限才能选择图片。请在设置中启用权限。'),
+                  content: Text(t.permissionGalleryDeniedPermanently),
                   action: SnackBarAction(
-                    label: '设置',
+                    label: t.settings,
                     onPressed: () => openAppSettings(),
                   ),
                 ),
@@ -373,9 +377,9 @@ class _AccountDetailPageState extends State<AccountDetailPage>
             }
           } else {
             if (mounted) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('需要相册权限才能选择图片')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(t.permissionGalleryDenied)),
+              );
             }
           }
           if (mounted) Navigator.pop(context);
@@ -395,12 +399,12 @@ class _AccountDetailPageState extends State<AccountDetailPage>
             aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
             uiSettings: [
               AndroidUiSettings(
-                toolbarTitle: '裁剪图片',
+                toolbarTitle: t.cropImage,
                 initAspectRatio: CropAspectRatioPreset.square,
                 lockAspectRatio: true,
               ),
               IOSUiSettings(
-                title: '裁剪',
+                title: t.shop,
                 aspectRatioLockEnabled: true,
                 resetAspectRatioEnabled: false,
               ),
@@ -435,7 +439,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('需要相册权限才能选择图片')));
+          ).showSnackBar(SnackBar(content: Text(t.permissionGalleryDenied)));
         }
         if (mounted) Navigator.pop(context);
       }
@@ -443,13 +447,14 @@ class _AccountDetailPageState extends State<AccountDetailPage>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('选择图片失败：$e')));
+        ).showSnackBar(SnackBar(content: Text('${t.pickImageFailed}: $e')));
       }
       if (mounted) Navigator.pop(context);
     }
   }
 
   void _showDeleteDialog() {
+    final t = AppLocalizations.of(context);
     bool confirmed = false;
 
     showDialog(
@@ -457,16 +462,16 @@ class _AccountDetailPageState extends State<AccountDetailPage>
       barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, dialogSetState) => AlertDialog(
-          title: const Text('确认删除'),
+          title: Text(t.confirmDelete),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('确定要删除 "${_account.label}" 吗？'),
+              Text(t.confirmDeleteMessage(_account.label)),
               const SizedBox(height: 16),
               Text(
                 confirmed
-                    ? '确认要删除${_account.label}吗？此操作不可撤销。'
-                    : '这是最后一次确认，您是否要删除${_account.label}？',
+                    ? t.finalConfirmDeleteMessage(_account.label)
+                    : t.initialConfirmDeleteMessage(_account.label),
                 style: TextStyle(color: Colors.red[600], fontSize: 12),
               ),
             ],
@@ -474,7 +479,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('取消'),
+              child: Text(t.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -489,7 +494,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
                 }
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text(confirmed ? '确认删除' : '删除'),
+              child: Text(confirmed ? t.confirmDeleteButton : t.delete),
             ),
           ],
         ),
@@ -499,8 +504,9 @@ class _AccountDetailPageState extends State<AccountDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('账户详情')),
+      appBar: AppBar(title: Text(t.accountDetail)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -580,7 +586,6 @@ class _AccountDetailPageState extends State<AccountDetailPage>
                         _currentCode,
                         style: TextStyle(
                           fontSize: 32,
-                          fontFamily: 'monospace',
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
                           letterSpacing: 4,
@@ -590,7 +595,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
                       IconButton(
                         icon: const Icon(Icons.copy),
                         onPressed: _copyCode,
-                        tooltip: '复制验证码',
+                        tooltip: t.copyCodeTooltip,
                       ),
                     ],
                   ),
@@ -629,7 +634,7 @@ class _AccountDetailPageState extends State<AccountDetailPage>
                               ),
                             ),
                             Text(
-                              '秒后更新',
+                              t.secondsToUpdate,
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 14,

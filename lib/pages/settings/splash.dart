@@ -3,6 +3,8 @@ import 'package:neap/main.dart';
 import 'package:flutter/material.dart';
 import '../../services/setting_service.dart';
 import 'theme.dart';
+import 'global.dart';
+import '../../l10n/app_localizations.dart';
 
 class SettingsMainPage extends StatefulWidget {
   const SettingsMainPage({super.key});
@@ -14,10 +16,26 @@ class SettingsMainPage extends StatefulWidget {
 class _SettingsMainPageState extends State<SettingsMainPage> with RouteAware {
   final SettingsService _settingsService = SettingsService();
 
-  final List<Map<String, dynamic>> _menuItems = const [
-    {'title': '主题设置', 'subtitle': '主题风格、颜色方案', 'icon': Icons.palette},
-    {'title': '关于', 'subtitle': '版本信息、开源许可', 'icon': Icons.info},
-  ];
+  List<Map<String, dynamic>> _getLocalizedMenuItems(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return [
+      {
+        'title': localizations.globalSettings,
+        'subtitle': localizations.globalSettingsSubtitle,
+        'icon': Icons.settings,
+      },
+      {
+        'title': localizations.themeSettings,
+        'subtitle': localizations.themeSettingsSubtitle,
+        'icon': Icons.palette,
+      },
+      {
+        'title': localizations.about,
+        'subtitle': localizations.aboutSubtitle,
+        'icon': Icons.info,
+      },
+    ];
+  }
 
   @override
   void didChangeDependencies() {
@@ -44,14 +62,15 @@ class _SettingsMainPageState extends State<SettingsMainPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    final menuItems = _getLocalizedMenuItems(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('设置')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).settings)),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
-        itemCount: _menuItems.length,
+        itemCount: menuItems.length,
         separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
-          final item = _menuItems[index];
+          final item = menuItems[index];
           return Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
@@ -81,6 +100,16 @@ class _SettingsMainPageState extends State<SettingsMainPage> with RouteAware {
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 if (index == 0) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GlobalSettingsPage(
+                        settingsService: _settingsService,
+                        onSettingsChanged: _onSettingsChanged,
+                      ),
+                    ),
+                  );
+                } else if (index == 1) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(

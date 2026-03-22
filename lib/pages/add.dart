@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../l10n/app_localizations.dart';
 import '../models/account_model.dart';
 
 class AddAccountPage extends StatefulWidget {
@@ -48,7 +49,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('输入 URI'),
+          title: Text(AppLocalizations.of(context).enterUri),
           content: TextFormField(
             controller: uriController,
             decoration: InputDecoration(
@@ -65,7 +66,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('取消'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -83,7 +84,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   borderRadius: BorderRadius.circular(12.0),
                 ),
               ),
-              child: const Text('确定'),
+              child: Text(AppLocalizations.of(context).confirm),
             ),
           ],
         );
@@ -128,9 +129,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('无效的二维码：$e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${AppLocalizations.of(context).invalidQrCode}: $e'),
+        ),
+      );
     }
   }
 
@@ -186,12 +189,13 @@ class _AddAccountPageState extends State<AddAccountPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     if (_showScanner) {
       return _buildScannerPage();
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('添加账户')),
+      appBar: AppBar(title: Text(t.addAccount)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -201,7 +205,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
               ElevatedButton.icon(
                 onPressed: _showScannerPage,
                 icon: const Icon(Icons.qr_code_scanner),
-                label: const Text('扫描二维码'),
+                label: Text(t.scanQrCode),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   side: BorderSide(
@@ -217,7 +221,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
               ElevatedButton.icon(
                 onPressed: _showUriInputDialog,
                 icon: const Icon(Icons.edit),
-                label: const Text('手动输入 URI'),
+                label: Text(t.manualInputUri),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   side: BorderSide(
@@ -232,15 +236,18 @@ class _AddAccountPageState extends State<AddAccountPage> {
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 16),
-              const Text(
-                '或手动输入',
-                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+              Text(
+                t.manualInputHint,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _labelController,
                 decoration: InputDecoration(
-                  labelText: '标签',
+                  labelText: t.label,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide(
@@ -250,13 +257,14 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   ),
                   prefixIcon: const Icon(Icons.label_outline),
                 ),
-                validator: (v) => v?.trim().isEmpty == true ? '请输入标签' : null,
+                validator: (v) =>
+                    v?.trim().isEmpty == true ? t.pleaseEnterLabel : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _issuerController,
                 decoration: InputDecoration(
-                  labelText: '发行者（非必填）',
+                  labelText: t.issuer,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide(
@@ -271,7 +279,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
               TextFormField(
                 controller: _secretController,
                 decoration: InputDecoration(
-                  labelText: '密钥',
+                  labelText: t.secret,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide(
@@ -282,20 +290,23 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   prefixIcon: const Icon(Icons.vpn_key),
                 ),
                 validator: (v) {
-                  if (v?.trim().isEmpty == true) return '请输入密钥';
+                  if (v?.trim().isEmpty == true) return t.pleaseEnterSecret;
                   return null;
                 },
               ),
               const SizedBox(height: 16),
-              const Text(
-                '高级选项',
-                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+              Text(
+                t.advancedOptions,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _selectedAlgorithm,
+                initialValue: _selectedAlgorithm,
                 decoration: InputDecoration(
-                  labelText: '加密算法',
+                  labelText: t.encryptionAlgorithm,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide(
@@ -318,9 +329,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<int>(
-                value: _selectedDigits,
+                initialValue: _selectedDigits,
                 decoration: InputDecoration(
-                  labelText: '验证码位数',
+                  labelText: t.codeDigits,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide(
@@ -334,7 +345,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     .map(
                       (value) => DropdownMenuItem(
                         value: value,
-                        child: Text('$value 位'),
+                        child: Text('$value ${t.digitsUnit}'),
                       ),
                     )
                     .toList(),
@@ -348,7 +359,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
               TextFormField(
                 controller: _periodController,
                 decoration: InputDecoration(
-                  labelText: '周期',
+                  labelText: t.refreshPeriod,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide(
@@ -357,15 +368,15 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     ),
                   ),
                   prefixIcon: const Icon(Icons.schedule),
-                  suffixText: '秒',
+                  suffixText: t.seconds,
                 ),
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 keyboardType: TextInputType.number,
                 validator: (v) {
-                  if (v?.trim().isEmpty == true) return '请输入周期';
+                  if (v?.trim().isEmpty == true) return t.pleaseEnterPeriod;
                   final period = int.tryParse(v?.trim() ?? '') ?? 0;
                   if (period < 1 || period > 120) {
-                    return '刷新周期必须在1-120秒之间';
+                    return t.periodRangeError;
                   }
                   return null;
                 },
@@ -389,7 +400,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                 ),
-                child: const Text('保存'),
+                child: Text(t.save),
               ),
             ],
           ),
@@ -399,9 +410,10 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 
   Widget _buildScannerPage() {
+    final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('扫描二维码'),
+        title: Text(t.scanQrCode),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: _closeScannerPage,
@@ -441,12 +453,12 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
+                  color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  '将二维码放在框内',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
+                child: Text(
+                  t.placeQrCodeInFrame,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
             ),

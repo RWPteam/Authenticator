@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/account_model.dart';
 import '../services/storage_service.dart';
 import 'add.dart';
 import 'detail.dart';
-import 'settings/main.dart';
+import 'settings/splash.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -79,9 +80,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Neap'),
+        title: Text(t.appTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -114,12 +116,14 @@ class _HomePageState extends State<HomePage> {
           );
           if (result != null) _addAccount(result);
         },
+        tooltip: t.add,
         child: const Icon(Icons.add),
       ),
     );
   }
 
   Widget _buildEmptyState() {
+    final t = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -127,14 +131,14 @@ class _HomePageState extends State<HomePage> {
           Icon(Icons.qr_code_scanner, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            '暂无信息',
+            t.emptyAccountsTitle,
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
-            '点击右下角 + 按钮添加',
+            t.emptyAccountsHint,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),

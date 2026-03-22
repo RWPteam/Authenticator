@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/setting_service.dart';
 
 class ThemeSettingsPage extends StatefulWidget {
@@ -22,25 +23,6 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
   String _pageTheme = 'default';
   bool _useMaterialYou = false;
 
-  final Map<String, String> _themeModeMap = {
-    'system': '跟随系统',
-    'light': '浅色',
-    'dark': '深色',
-  };
-
-  final Map<String, Color> _themeColors = {
-    'default': const Color(0xFF6750A4),
-    'orange': const Color(0xFFFF6F00),
-    'green': const Color(0xFF4CAF50),
-    'yellow': const Color(0xFFFFC107),
-    'red': const Color(0xFFF44336),
-    'pink': const Color(0xFFE91E63),
-    'purple': const Color(0xFF9C27B0),
-    'cyan': Colors.cyan,
-    'indigo': Colors.indigo,
-    'monochrome': Colors.black,
-  };
-
   final List<String> _themeModes = ['system', 'light', 'dark'];
   final List<String> _pageThemes = [
     'default',
@@ -54,6 +36,19 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
     'indigo',
     'monochrome',
   ];
+
+  final Map<String, Color> _themeColors = {
+    'default': const Color(0xFF6750A4),
+    'orange': const Color(0xFFFF6F00),
+    'green': const Color(0xFF4CAF50),
+    'yellow': const Color(0xFFFFC107),
+    'red': const Color(0xFFF44336),
+    'pink': const Color(0xFFE91E63),
+    'purple': const Color(0xFF9C27B0),
+    'cyan': Colors.cyan,
+    'indigo': Colors.indigo,
+    'monochrome': Colors.black,
+  };
 
   @override
   void initState() {
@@ -84,15 +79,16 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
       widget.onSettingsChanged();
     } catch (e) {
       if (mounted) {
+        final t = AppLocalizations.of(context);
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('保存失败'),
+            title: Text(t.saveFailed),
             content: Text(e.toString()),
             actions: [
               OutlinedButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('确定'),
+                child: Text(t.confirm),
               ),
             ],
           ),
@@ -130,6 +126,20 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
       }
     }
     return ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
+  }
+
+  String _getThemeModeText(BuildContext context, String mode) {
+    final t = AppLocalizations.of(context);
+    switch (mode) {
+      case 'system':
+        return t.followSystem;
+      case 'light':
+        return t.light;
+      case 'dark':
+        return t.dark;
+      default:
+        return mode;
+    }
   }
 
   Widget _buildColorPalette(String theme) {
@@ -174,17 +184,24 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
   }
 
   void _showThemeModeDialog() {
+    final t = AppLocalizations.of(context);
     String currentValue = _themeMode;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('主题风格'),
+        title: Text(t.themeStyle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: _themeModes
               .map(
                 (mode) => RadioListTile<String>(
-                  title: Text(_themeModeMap[mode] ?? mode),
+                  title: Text(
+                    mode == 'system'
+                        ? t.followSystem
+                        : mode == 'light'
+                        ? t.light
+                        : t.dark,
+                  ),
                   value: mode,
                   groupValue: currentValue,
                   onChanged: (value) async {
@@ -203,7 +220,7 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
         actions: [
           OutlinedButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(t.cancel),
           ),
         ],
       ),
@@ -212,11 +229,12 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('主题设置')),
+      appBar: AppBar(title: Text(t.themeSettings)),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : LayoutBuilder(
@@ -231,11 +249,11 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 16),
-                            const Padding(
-                              padding: EdgeInsets.only(bottom: 16.0),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
                               child: Text(
-                                '主题风格',
-                                style: TextStyle(
+                                t.themeStyle,
+                                style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -256,7 +274,7 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
                                     final mode = _themeModes[index];
                                     return ListTile(
                                       title: Text(
-                                        _themeModeMap[mode] ?? mode,
+                                        _getThemeModeText(context, mode),
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
@@ -303,9 +321,9 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: SwitchListTile(
-                                  title: const Text(
-                                    '使用 Material You 动态颜色',
-                                    style: TextStyle(
+                                  title: Text(
+                                    t.useMaterialYou,
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -323,11 +341,11 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
                                   ),
                                 ),
                               ),
-                              const Padding(
-                                padding: EdgeInsets.only(bottom: 16.0),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
                                 child: Text(
-                                  '页面主题',
-                                  style: TextStyle(
+                                  t.pageTheme,
+                                  style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -405,15 +423,15 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
                             borderRadius: BorderRadius.circular(12.0),
                           ),
                           child: ListTile(
-                            title: const Text(
-                              '主题风格',
-                              style: TextStyle(
+                            title: Text(
+                              t.themeStyle,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             subtitle: Text(
-                              _themeModeMap[_themeMode] ?? _themeMode,
+                              _getThemeModeText(context, _themeMode),
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey.shade600,
@@ -441,9 +459,9 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
                             borderRadius: BorderRadius.circular(12.0),
                           ),
                           child: SwitchListTile(
-                            title: const Text(
-                              '使用 Material You 动态颜色',
-                              style: TextStyle(
+                            title: Text(
+                              t.useMaterialYou,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -461,14 +479,14 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
                             ),
                           ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 16,
                           ),
                           child: Text(
-                            '页面主题',
-                            style: TextStyle(
+                            t.pageTheme,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
