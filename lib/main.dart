@@ -193,7 +193,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     setState(() => _isAuthenticating = true);
 
-    // 手动加载本地化文本，避免依赖尚未就绪的 context
     String localizedReason = 'Please authenticate to unlock Neap';
     try {
       Locale currentLocale;
@@ -208,10 +207,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           currentLocale = const Locale('en', 'US');
           break;
         default:
-          // 跟随系统语言，获取平台当前语言
           currentLocale = WidgetsBinding.instance.platformDispatcher.locale;
       }
-      // 直接通过 delegate 加载对应语言的翻译
       final appLocalizations = await const AppLocalizationsDelegate().load(
         currentLocale,
       );
@@ -241,7 +238,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (didAuthenticate) {
         setState(() => _isAuthenticated = true);
       } else {
-        // 验证失败，清空导航栈
         if (navigatorKey.currentState != null) {
           navigatorKey.currentState!.pushNamedAndRemoveUntil(
             '/',
