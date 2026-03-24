@@ -27,12 +27,17 @@ class TotpAccount {
     this.algorithm = 'SHA1',
   });
 
-  String generateCode() {
+  String generateCode({DateTime? time}) {
     final secretBytes = _decodeSecret(secret);
-    final time = DateTime.now().millisecondsSinceEpoch ~/ 1000 ~/ interval;
+
+    final DateTime targetTime = time ?? DateTime.now();
+
+    final int unixTimestamp = targetTime.millisecondsSinceEpoch ~/ 1000;
+
+    final int counter = unixTimestamp ~/ interval;
 
     final timeBytes = Uint8List(8)
-      ..buffer.asByteData().setInt64(0, time, Endian.big);
+      ..buffer.asByteData().setInt64(0, counter, Endian.big);
 
     final Hash hashAlgorithm = _getHashAlgorithm(algorithm);
     final hmac = Hmac(hashAlgorithm, secretBytes);

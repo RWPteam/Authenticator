@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:neap/services/time_service.dart';
 import 'package:screen_protector/screen_protector.dart';
 
 import 'pages/home.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => _MyAppState();
 
+  // ignore: library_private_types_in_public_api
   static _MyAppState? of(BuildContext context) =>
       context.findAncestorStateOfType<_MyAppState>();
 }
@@ -39,12 +41,24 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   DateTime? _backgroundTimestamp;
   final Duration _gracePeriod = const Duration(seconds: 5);
 
+  final TimeService _timeService = TimeService();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initSecuritySettings();
-    loadSettings().then((_) => _authenticate());
+    _initTimeService();
+    loadSettings().then(
+      (_) => {
+        _applyScreenshotProtection(_currentSettings.preventScreenshot),
+        _authenticate(),
+      },
+    );
+  }
+
+  Future<void> _initTimeService() async {
+    await _timeService.init();
   }
 
   @override
@@ -57,6 +71,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Future<void> _initSecuritySettings() async {
     await ScreenProtector.preventScreenshotOn();
     await ScreenProtector.protectDataLeakageWithBlur();
+  }
+
+  Future<void> _applyScreenshotProtection(bool enable) async {
+    if (enable) {
+      await ScreenProtector.preventScreenshotOn();
+      await ScreenProtector.protectDataLeakageWithBlur();
+    } else {
+      await ScreenProtector.preventScreenshotOff();
+    }
   }
 
   @override
@@ -96,7 +119,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               Icon(
                 Icons.lock_outline,
                 size: 72,
-                color: colorScheme.primary.withOpacity(0.5),
+                color: colorScheme.primary.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 24),
               Text(
@@ -261,6 +284,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _isLoading = false;
     });
 
+    await _timeService.updateSettings(settings);
+
+    if (oldSettings.preventScreenshot != settings.preventScreenshot) {
+      await _applyScreenshotProtection(settings.preventScreenshot);
+    }
     if (oldSettings.requireBiometrics != settings.requireBiometrics) {
       if (!settings.requireBiometrics) {
         setState(() => _isAuthenticated = true);

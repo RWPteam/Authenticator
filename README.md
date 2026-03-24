@@ -8,5 +8,5 @@ flutter build apk --split-debug-info --obfuscate  --split-per-abi
 ```
 # Todo
 * sort
-* Custom NTP
+* quick mode(show code in homepage)
 * more feature...

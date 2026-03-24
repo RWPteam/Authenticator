@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:screen_protector/screen_protector.dart';
 import '../../l10n/app_localizations.dart';
 
 class EggPage extends StatefulWidget {
@@ -9,6 +10,12 @@ class EggPage extends StatefulWidget {
 }
 
 class _EggPageState extends State<EggPage> {
+  @override
+  void initState() {
+    super.initState();
+    ScreenProtector.preventScreenshotOff();
+  }
+
   final List<Map<String, dynamic>> _messages = [];
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   final TextEditingController _controller = TextEditingController();
@@ -54,6 +61,7 @@ class _EggPageState extends State<EggPage> {
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    ScreenProtector.preventScreenshotOn();
     super.dispose();
   }
 

@@ -20,6 +20,9 @@ class _GlobalSettingsPageState extends State<GlobalSettingsPage> {
   bool _isLoading = true;
   String _language = 'system';
   bool _requireBiometrics = true;
+  bool _preventScreenshot = true;
+  bool _useNetworkTime = false;
+  String _ntpServer = 'pool.ntp.org';
 
   final List<String> _languages = ['system', 'zh', 'en', 'ja'];
 
@@ -44,6 +47,9 @@ class _GlobalSettingsPageState extends State<GlobalSettingsPage> {
       _language = settings.language;
       _requireBiometrics = settings.requireBiometrics;
       _isLoading = false;
+      _preventScreenshot = settings.preventScreenshot;
+      _useNetworkTime = settings.useNetworkTime;
+      _ntpServer = settings.ntpServer;
     });
   }
 
@@ -53,6 +59,9 @@ class _GlobalSettingsPageState extends State<GlobalSettingsPage> {
       final newSettings = currentSettings.copyWith(
         language: _language,
         requireBiometrics: _requireBiometrics,
+        preventScreenshot: _preventScreenshot,
+        useNetworkTime: _useNetworkTime,
+        ntpServer: _ntpServer,
       );
       await widget.settingsService.saveSettings(newSettings);
 
@@ -66,6 +75,37 @@ class _GlobalSettingsPageState extends State<GlobalSettingsPage> {
         );
       }
     }
+  }
+
+  void _showNtpServerDialog() {
+    final controller = TextEditingController(text: _ntpServer);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context).customNtpServer),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'pool.ntp.org',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context).cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() => _ntpServer = controller.text.trim());
+              _saveSettings();
+              Navigator.pop(context);
+            },
+            child: Text(AppLocalizations.of(context).save),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showLanguageDialog() {
@@ -147,6 +187,64 @@ class _GlobalSettingsPageState extends State<GlobalSettingsPage> {
               contentPadding: const EdgeInsets.all(16),
             ),
           ),
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SwitchListTile(
+              title: Text(AppLocalizations.of(context).preventScreenshot),
+              subtitle: Text(
+                AppLocalizations.of(context).preventScreenshotDescription,
+              ),
+              value: _preventScreenshot,
+              onChanged: (value) {
+                setState(() => _preventScreenshot = value);
+                _saveSettings();
+              },
+              contentPadding: const EdgeInsets.all(16),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SwitchListTile(
+              title: Text(AppLocalizations.of(context).useNetworkTime),
+              subtitle: Text(
+                AppLocalizations.of(context).networkTimeDescription,
+              ),
+              value: _useNetworkTime,
+              onChanged: (value) {
+                setState(() => _useNetworkTime = value);
+                _saveSettings();
+              },
+              contentPadding: const EdgeInsets.all(16),
+            ),
+          ),
+          if (_useNetworkTime)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context).customNtpServer),
+                  subtitle: Text(_ntpServer),
+                  trailing: const Icon(Icons.edit),
+                  onTap: _showNtpServerDialog,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -111,6 +111,13 @@ class AppLocalizations {
       'type_message': 'Type a message...',
       'send': 'Send',
       'secret_message_received': 'Now...?',
+      'prevent_screenshot': 'Prevent Screenshot',
+      'prevent_screenshot_description':
+          'Prevent screenshots when you are using the app',
+      'custom_ntp_server': 'Custom NTP Server',
+      'network_time_description':
+          'Use network time to generate codes when enabled',
+      'use_network_time': 'Use Network Time',
     },
     'zh': {
       'app_title': 'Neap',
@@ -191,7 +198,7 @@ class AppLocalizations {
       'empty_accounts_title': '暂无账户',
       'empty_accounts_hint': '点击 + 按钮添加第一个账户',
       'ok': '确定',
-      'initial_confirm_delete_message': '这是第一次确认，再次点击“删除”按钮确认。',
+      'initial_confirm_delete_message': '再次点击“删除”按钮确认。',
       'final_confirm_delete_message': '这是最后一次机会，点击“删除”将永久删除 "{label}"。',
       'global_settings_subtitle': '语言和生物识别',
       'theme_settings_subtitle': '主题和颜色',
@@ -203,6 +210,11 @@ class AppLocalizations {
       'type_message': '输入消息...',
       'send': '发送',
       'secret_message_received': '现在吗...还有点早',
+      'prevent_screenshot': '禁止截图',
+      'prevent_screenshot_description': '开启后，您将无法在应用内截图',
+      'custom_ntp_server': '自定义 NTP 服务器',
+      'network_time_description': '开启后将优先使用网络时间生成验证码',
+      'use_network_time': '使用网络时间',
     },
     'ja': {
       'app_title': 'Neap',
@@ -283,7 +295,7 @@ class AppLocalizations {
       'empty_accounts_title': 'アカウントがありません',
       'empty_accounts_hint': '「＋」をタップしてアカウント追加',
       'ok': 'OK',
-      'initial_confirm_delete_message': 'これは最初の確認です。もう一度「削除」をタップして確定してください。',
+      'initial_confirm_delete_message': 'もう一度「削除」をタップして確定してください。',
       'final_confirm_delete_message':
           'これが最後の確認です。「削除」をタップすると "{label}" が完全に削除されます。',
       'global_settings_subtitle': '言語と生体認証',
@@ -297,6 +309,11 @@ class AppLocalizations {
       'type_message': 'メッセージを入力...',
       'send': '送信',
       'secret_message_received': 'まだその時じゃない...',
+      'prevent_screenshot': 'スクリーンショットを防止',
+      'prevent_screenshot_description': 'スクリーンショットを防止します',
+      'custom_ntp_server': 'NTP サーバーをカスタマイズ',
+      'network_time_description': '有効にすると、ネットワーク時間を優先してコードを生成します',
+      'use_network_time': 'ネットワーク時間を使用',
     },
   };
 
@@ -537,11 +554,32 @@ class AppLocalizations {
       _localizedValues[locale.languageCode]?['secret_message_received'] ??
       'Now?';
 
+  String get preventScreenshot =>
+      _localizedValues[locale.languageCode]?['prevent_screenshot'] ??
+      'Prevent Screenshot';
+
+  String get preventScreenshotDescription =>
+      _localizedValues[locale
+          .languageCode]?['prevent_screenshot_description'] ??
+      'Prevent screenshots when you are using the app';
+
+  String get customNtpServer =>
+      _localizedValues[locale.languageCode]?['custom_ntp_server'] ??
+      'Custom NTP Server';
+
+  String get networkTimeDescription =>
+      _localizedValues[locale.languageCode]?['network_time_description'] ??
+      'Use network time to generate codes';
+
+  String get useNetworkTime =>
+      _localizedValues[locale.languageCode]?['use_network_time'] ??
+      'Use Network Time';
+
   String initialConfirmDeleteMessage(String label) {
     final template =
         _localizedValues[locale
             .languageCode]?['initial_confirm_delete_message'] ??
-        'This is your first confirmation. Tap "Delete" again to confirm.';
+        'Tap "Delete" again to confirm.';
     return template.replaceAll('{label}', label);
   }
 

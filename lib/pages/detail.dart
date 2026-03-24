@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:neap/services/time_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import '../l10n/app_localizations.dart';
@@ -70,10 +71,12 @@ class _AccountDetailPageState extends State<AccountDetailPage>
     });
   }
 
-  void _updateCode() {
-    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  Future<void> _updateCode() async {
+    final timeService = TimeService();
+    final nowDateTime = await timeService.getCurrentTime();
+    final now = nowDateTime.millisecondsSinceEpoch ~/ 1000;
     final remaining = _account.interval - (now % _account.interval);
-    final code = _account.generateCode();
+    final code = _account.generateCode(time: nowDateTime);
 
     setState(() {
       _currentCode = code;
@@ -338,29 +341,30 @@ class _AccountDetailPageState extends State<AccountDetailPage>
       var status = await permissionToRequest.status;
 
       if (status.isDenied || status.isLimited) {
-        final shouldRequest = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(t.permissionRequired),
-            content: Text(t.permissionGalleryDescription),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(t.cancel),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(t.allow),
-              ),
-            ],
-          ),
-        );
+        if (mounted) {
+          final shouldRequest = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(t.permissionRequired),
+              content: Text(t.permissionGalleryDescription),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(t.cancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(t.allow),
+                ),
+              ],
+            ),
+          );
 
-        if (shouldRequest != true) {
-          if (mounted) Navigator.pop(context);
-          return;
+          if (shouldRequest != true) {
+            if (mounted) Navigator.pop(context);
+            return;
+          }
         }
-
         status = await permissionToRequest.request();
         if (status.isDenied || status.isPermanentlyDenied) {
           if (status.isPermanentlyDenied) {

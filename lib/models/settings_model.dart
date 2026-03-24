@@ -4,6 +4,9 @@ class AppSettings {
   final bool useMaterialYou;
   final bool requireBiometrics;
   final String language;
+  final bool preventScreenshot;
+  final bool useNetworkTime;
+  final String ntpServer;
 
   const AppSettings({
     required this.themeMode,
@@ -11,6 +14,9 @@ class AppSettings {
     required this.useMaterialYou,
     required this.requireBiometrics,
     required this.language,
+    required this.preventScreenshot,
+    required this.useNetworkTime,
+    required this.ntpServer,
   });
 
   static const defaults = AppSettings(
@@ -19,6 +25,9 @@ class AppSettings {
     useMaterialYou: false,
     requireBiometrics: true,
     language: 'system',
+    preventScreenshot: true,
+    useNetworkTime: false,
+    ntpServer: 'pool.ntp.org',
   );
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -28,6 +37,9 @@ class AppSettings {
       useMaterialYou: json['useMaterialYou'] ?? false,
       requireBiometrics: json['requireBiometrics'] ?? true,
       language: json['language'] ?? 'system',
+      preventScreenshot: json['preventScreenshot'] ?? true,
+      useNetworkTime: json['useNetworkTime'] ?? false,
+      ntpServer: json['ntpServer'] ?? 'pool.ntp.org',
     );
   }
 
@@ -38,6 +50,9 @@ class AppSettings {
       'useMaterialYou': useMaterialYou,
       'requireBiometrics': requireBiometrics,
       'language': language,
+      'preventScreenshot': preventScreenshot,
+      'useNetworkTime': useNetworkTime,
+      'ntpServer': ntpServer,
     };
   }
 
@@ -47,6 +62,9 @@ class AppSettings {
     bool? useMaterialYou,
     bool? requireBiometrics,
     String? language,
+    bool? preventScreenshot,
+    bool? useNetworkTime,
+    String? ntpServer,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -54,6 +72,9 @@ class AppSettings {
       useMaterialYou: useMaterialYou ?? this.useMaterialYou,
       requireBiometrics: requireBiometrics ?? this.requireBiometrics,
       language: language ?? this.language,
+      preventScreenshot: preventScreenshot ?? this.preventScreenshot,
+      useNetworkTime: useNetworkTime ?? this.useNetworkTime,
+      ntpServer: ntpServer ?? this.ntpServer,
     );
   }
 }
